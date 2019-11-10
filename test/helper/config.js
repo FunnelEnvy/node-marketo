@@ -1,10 +1,10 @@
 var _ = require('lodash'),
     env = process.env,
     defaults = {
-      endpoint: 'https://123-ABC-456.mktorest.com/rest',
-      identity: 'https://123-ABC-456.mktorest.com/identity',
-      clientId: 'someId',
-      clientSecret: 'someSecret'
+      endpoint: 'https://402-GVR-527.mktorest.com/rest',
+      identity: 'https://402-GVR-527.mktorest.com/identity',
+      clientId: 'bcd0b3f6-b65c-4dba-965f-606cb5b199e9',
+      clientSecret: '23BE0UfSPLmjZtOct7W4y0xzdJWKey5r'
     },
     credentials;
 
