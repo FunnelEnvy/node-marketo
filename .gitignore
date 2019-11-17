@@ -2,6 +2,5 @@
 /.idea/
 /.history
 *.iml
-test-info.txt
 test/helper/config.bk.js
 package-lock.json
