@@ -1,8 +1,29 @@
-var _ = require('lodash'),
+const _ = require('lodash'),
     Promise = require('bluebird'),
     assert = require('assert'),
-    Connection = require('../lib/connection'),
-    nock = require('nock');
+    util = require('../lib/util'),
+    nock = require('nock'),
+    rewire = require('rewire');
+
+const Connection = rewire("../lib/connection.js")
+Connection.__set__("getNextPageFn", getNextPageFn)
+function getNextPageFn(conn, method, args) {
+    var assetStrategy = {
+        offset: () => {
+            return () => 'offset'
+        },
+        token: () => {
+            return () => 'token'
+        },
+    };
+
+    var options = _.clone(_.last(args) || {});
+    args = _.clone(args);
+    args.pop();
+
+    var selectedStrategy = assetStrategy[util.nextPageType(args[0])]
+    return selectedStrategy(conn, method, args, options);
+}
 
 const assetScope = nock('http://localhost-mock')
     .filteringRequestBody(body => {
@@ -18,10 +39,7 @@ const assetScope = nock('http://localhost-mock')
         "result": [
             {
                 "id": 4363,
-                "name": "Smart List Test 01",
-                "createdAt": "2019-06-03T23:01:13Z+0000",
-                "updatedAt": "2019-06-04T17:37:45Z+0000",
-                "url": "https://app-sjqe.marketo.com/#SL4363A1LA1"
+                "name": "Smart List Test 01"
             }
         ]
     });
@@ -38,21 +56,8 @@ const tokenScope = nock('http://localhost-mock')
         "requestId": "string",
         "result": [
             {
-            "id": 0,
-            "membership": {
-                "acquiredBy": false,
-                "isExhausted": false,
-                "membershipDate": "string",
-                "nurtureCadence": "string",
-                "progressionStatus": "string",
-                "reachedSuccess": false,
-                "stream": "string"
-            },
-            "reason": {
-                "code": "string",
-                "message": "string"
-            },
-            "status": "string"
+                "id": 0,
+                "status": "string"
             }
         ],
         "success": true
@@ -83,13 +88,13 @@ function getConnection() {
 describe('Connection', function() {
     it('token type pagination', function() {
         return getConnection().post(TOKEN_URL, {data: {_method: 'GET', maxReturn: 200}}).then(resp => {
-            assert.equal(typeof resp.nextPage, 'function')
+            assert.equal(resp.nextPage(), 'token')
         });
     });
 
     it('offset type pagination', function() {
         return getConnection().post(ASSET_URL, {data: {_method: 'GET', maxReturn: 200}}).then(resp => {
-            assert.equal(typeof resp.nextPage, 'function')
+            assert.equal(resp.nextPage(), 'offset')
         });
     });
 });
